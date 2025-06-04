@@ -11,7 +11,7 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="/css/app.css">
     <style>
         /* Color Variables */
         :root {
@@ -507,6 +507,20 @@
             color: white;
         }
         
+        .btn-primary-app {
+            background: linear-gradient(135deg, var(--primary-app), var(--primary-dark));
+            border: none;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary-app:hover, .btn-primary-app:focus {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-app));
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            transform: translateY(-3px);
+            color: white;
+        }
+        
         .btn-outline-secondary {
             border-color: #ced4da;
             color: #6c757d;
@@ -723,6 +737,21 @@
             100% {
                 transform: translateY(0px);
             }
+        }
+
+        /* Disabled button appearance */
+        .btn-disabled {
+            background: linear-gradient(135deg, #b0b9da, #adb5d3);
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-disabled:hover {
+            background: linear-gradient(135deg, #b0b9da, #adb5d3);
+            transform: none;
+            box-shadow: none;
         }
     </style>
 </head>
@@ -1170,7 +1199,7 @@
                 });
             });
             
-            // เพิ่มอนิเมชั่นการเปลี่ยนสเต็ป
+            // Make sure the goToStep function is declared globally
             function goToStep(newStep) {
                 // บันทึกการอ้างอิงสเต็ปปัจจุบัน
                 const currentStepElement = steps[currentStep];
@@ -1196,7 +1225,7 @@
                 }, 300);
             }
             
-            // แทนที่การจัดการคลิกปุ่ม next
+            // เพิ่มอนิเมชั่นการเปลี่ยนสเต็ป
             nextButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     // ตรวจสอบการเลือก role ในสเต็ปแรก
@@ -1436,6 +1465,175 @@
                     });
                 }, 500);
             }
+
+            // Form validation for enabling/disabling buttons
+            initFormValidation();
+
+            function initFormValidation() {
+                // Get all the next/submit buttons
+                const nextButtons = document.querySelectorAll('.next-step');
+                const submitButton = document.querySelector('button[type="submit"]');
+                
+                // Initially disable all buttons
+                nextButtons.forEach(btn => {
+                    btn.classList.add('btn-disabled');
+                    btn.classList.remove('btn-primary-app');
+                });
+                
+                if (submitButton) {
+                    submitButton.classList.add('btn-disabled');
+                    submitButton.classList.remove('btn-primary-app');
+                }
+                
+                // Setup validation for each step
+                setupStep1Validation();
+                setupStep2Validation();
+                setupStep3Validation();
+            }
+            
+            function setupStep1Validation() {
+                const roleCards = document.querySelectorAll('.role-card');
+                const nextButton = document.querySelector('#step1 .next-step');
+                const selectedRoleInput = document.getElementById('selectedRole');
+                
+                // Role card selection validates step 1
+                roleCards.forEach(card => {
+                    card.addEventListener('click', () => {
+                        // Your existing code for role selection...
+                        
+                        // Update next button state
+                        nextButton.classList.remove('btn-disabled', 'btn-accent-app');
+                        nextButton.classList.add('btn-primary-app');
+                    });
+                });
+            }
+            
+            function setupStep2Validation() {
+                const step2 = document.getElementById('step2');
+                const nextButton = document.querySelector('#step2 .next-step');
+                
+                // Setup event listeners for all required fields in step 2
+                // Since the fields change based on role, we'll validate on input event for all possible fields
+                const requiredFields = step2.querySelectorAll('[required], [data-required="true"]');
+                
+                requiredFields.forEach(field => {
+                    field.addEventListener('input', () => validateStep2());
+                    field.addEventListener('change', () => validateStep2());
+                });
+                
+                // Also validate gender radio buttons
+                const genderRadios = step2.querySelectorAll('input[name="gender"]');
+                genderRadios.forEach(radio => {
+                    radio.addEventListener('change', () => validateStep2());
+                });
+                
+                // Initial validation
+                validateStep2();
+                
+                function validateStep2() {
+                    // Get the currently displayed role fields
+                    const activeFields = step2.querySelector('.role-fields[style*="display: block"]');
+                    if (!activeFields) return;
+                    
+                    // Check if all required fields in the active fields are valid
+                    const requiredFields = activeFields.querySelectorAll('[required], [data-required="true"]');
+                    let isValid = true;
+                    
+                    requiredFields.forEach(field => {
+                        if (field.type === "radio") {
+                            // For radio buttons, check if any in the group is checked
+                            const name = field.name;
+                            const checkedRadio = activeFields.querySelector(`input[name="${name}"]:checked`);
+                            if (!checkedRadio) isValid = false;
+                        } else if (!field.value.trim() || !field.checkValidity()) {
+                            isValid = false;
+                        }
+                    });
+                    
+                    // Update next button state based on validation
+                    if (isValid) {
+                        nextButton.classList.remove('btn-disabled', 'btn-accent-app');
+                        nextButton.classList.add('btn-primary-app');
+                    } else {
+                        nextButton.classList.add('btn-disabled', 'btn-accent-app');
+                        nextButton.classList.remove('btn-primary-app');
+                    }
+                }
+            }
+            
+            function setupStep3Validation() {
+                const step3 = document.getElementById('step3');
+                const submitButton = document.querySelector('button[type="submit"]');
+                
+                // Setup event listeners for all required fields in step 3
+                const requiredFields = step3.querySelectorAll('[required]');
+                
+                requiredFields.forEach(field => {
+                    field.addEventListener('input', () => validateStep3());
+                    field.addEventListener('change', () => validateStep3());
+                });
+                
+                // Special handling
+                const password = document.getElementById('password');
+                const passwordConfirmation = document.getElementById('password_confirmation');
+                const termsCheckbox = document.getElementById('terms');
+                
+                passwordConfirmation.addEventListener('input', () => validateStep3());
+                termsCheckbox.addEventListener('change', () => validateStep3());
+                
+                // Initial validation
+                validateStep3();
+                
+                function validateStep3() {
+                    let isValid = true;
+                    
+                    // Check all required fields
+                    requiredFields.forEach(field => {
+                        if (!field.value.trim() || !field.checkValidity()) {
+                            isValid = false;
+                        }
+                    });
+                    
+                    // Special check for password confirmation
+                    if (password.value !== passwordConfirmation.value) {
+                        isValid = false;
+                    }
+                    
+                    // Check terms checkbox
+                    if (!termsCheckbox.checked) {
+                        isValid = false;
+                    }
+                    
+                    // Update submit button state based on validation
+                    if (isValid) {
+                        submitButton.classList.remove('btn-disabled', 'btn-accent-app');
+                        submitButton.classList.add('btn-primary-app');
+                    } else {
+                        submitButton.classList.add('btn-disabled', 'btn-accent-app');
+                        submitButton.classList.remove('btn-primary-app');
+                    }
+                }
+            }
+            
+            // Update form validation on step change
+            function updateValidationOnStepChange(step) {
+                // When changing steps, validate the current step
+                if (step === 0) {
+                    setupStep1Validation();
+                } else if (step === 1) {
+                    setupStep2Validation();
+                } else if (step === 2) {
+                    setupStep3Validation();
+                }
+            }
+            
+            // Add step change validation to your existing goToStep function
+            const originalGoToStep = goToStep;
+            window.goToStep = function(newStep) {
+                originalGoToStep(newStep);
+                // After changing steps, update validation
+                setTimeout(() => updateValidationOnStepChange(newStep), 300);
+            };
         });
     </script>
 </body>

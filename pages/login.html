@@ -11,7 +11,7 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="/css/app.css">
     <style>
         /* Color Variables */
         :root {
@@ -391,6 +391,21 @@
             visibility: visible;
             opacity: 1;
         }
+
+        .btn-primary-app {
+            background: linear-gradient(135deg, var(--primary-app), var(--primary-dark));
+            border: none;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary-app:hover, .btn-primary-app:focus {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-app));
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            transform: translateY(-3px);
+            color: white;
+        }
         
         .btn-link {
             text-decoration: none;
@@ -571,6 +586,21 @@
                 left: 20px;
             }
         }
+
+        /* Disabled button appearance */
+        .btn-accent-app.btn-disabled {
+            background: linear-gradient(135deg, #b0b9da, #adb5d3);
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-accent-app.btn-disabled:hover {
+            background: linear-gradient(135deg, #b0b9da, #adb5d3);
+            transform: none;
+            box-shadow: none;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -689,7 +719,7 @@
                             </div>
                             <a href="forgot-password.html" class="btn-link text-muted">ลืมรหัสผ่าน?</a>
                         </div>
-                        <button type="submit" class="btn btn-accent-app btn-lg w-100 d-flex align-items-center justify-content-center">
+                        <button type="submit" class="btn btn-accent-app btn-disabled btn-lg w-100 d-flex align-items-center justify-content-center">
                             <span class="btn-text">เข้าสู่ระบบ</span>
                             <span class="spinner-border spinner-border-sm btn-spinner d-none" role="status" aria-hidden="true"></span>
                         </button>
@@ -822,6 +852,11 @@
             const loginForms = document.querySelectorAll('.login-form');
             const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
             
+            // Initialize form validation for all forms
+            validateLoginForm('teacherLoginForm');
+            validateLoginForm('studentLoginForm');
+            validateLoginForm('parentLoginForm');
+            
             // Password toggle buttons
             const passwordToggles = document.querySelectorAll('.password-toggle');
             passwordToggles.forEach(toggle => {
@@ -849,6 +884,9 @@
                     // Show selected form
                     const targetFormId = this.dataset.target;
                     document.getElementById(targetFormId).classList.add('active');
+                    
+                    // Initialize validation on the newly selected form
+                    setTimeout(() => validateLoginForm(targetFormId), 100);
                 });
             });
             
@@ -900,6 +938,71 @@
                     });
                 }
             }
+        });
+
+        // Form validation for enabling button with primary color
+        function validateLoginForm(formId) {
+            const form = document.getElementById(formId);
+            if (!form) return;
+            
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const requiredFields = form.querySelectorAll('[required]');
+            
+            // Initially disable button
+            submitBtn.classList.add('btn-disabled');
+            submitBtn.classList.remove('btn-primary-app');
+            
+            // Function to check all fields and toggle button state
+            const checkFormValidity = () => {
+                let isValid = true;
+                
+                requiredFields.forEach(field => {
+                    // Check if field has a value and is valid
+                    if (!field.value.trim() || !field.checkValidity()) {
+                        isValid = false;
+                    }
+                });
+                
+                // Toggle button state based on form validity
+                if (isValid) {
+                    submitBtn.classList.remove('btn-disabled');
+                    submitBtn.classList.remove('btn-accent-app');
+                    submitBtn.classList.add('btn-primary-app');
+                } else {
+                    submitBtn.classList.add('btn-disabled');
+                    submitBtn.classList.remove('btn-primary-app');
+                    submitBtn.classList.add('btn-accent-app');
+                }
+            };
+            
+            // Add input event listeners to all required fields
+            requiredFields.forEach(field => {
+                field.addEventListener('input', checkFormValidity);
+                field.addEventListener('change', checkFormValidity);
+            });
+            
+            // Initialize button state
+            checkFormValidity();
+        }
+
+        // Add this to your existing DOMContentLoaded event
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize validation for all login forms - add this to your existing code
+            validateLoginForm('teacherLoginForm');
+            validateLoginForm('studentLoginForm');
+            validateLoginForm('parentLoginForm');
+            
+            // Add this to role card selection click event
+            const roleCards = document.querySelectorAll('.role-card');
+            roleCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Your existing code...
+                    
+                    // Initialize validation on the newly selected form
+                    const targetFormId = this.dataset.target;
+                    setTimeout(() => validateLoginForm(targetFormId), 100);
+                });
+            });
         });
     </script>
 </body>
